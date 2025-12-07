@@ -45,4 +45,154 @@
       color: var(--green-dark);
       font-size: 16px;
       text-align: center;
-      fon
+      font-family: "Georgia", serif;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 22px;
+      border-radius: 40px;
+      border: none;
+      background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+      color: var(--green-dark);
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+    }
+
+    button:disabled {
+      background: #B7A878;
+      color: #6B6B6B;
+      cursor: default;
+    }
+
+    #step2, #success {
+      display: none;
+    }
+
+    #success {
+      margin-top: 30px;
+      font-size: 20px;
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    #error {
+      color: #FFD5D5;
+      margin-top: 10px;
+      font-size: 15px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Confirmación de Asistencia</h2>
+
+<div id="step1">
+  <label>Código</label>
+  <input id="code" type="text" placeholder="Ingresa tu código">
+  <button id="btnValidate" onclick="validateCode()">Validar Código</button>
+  <p id="error"></p>
+</div>
+
+<div id="step2">
+  <label>Invitados que asistirán</label>
+  <select id="invitados"></select>
+  <button id="btnSubmit" onclick="submitRSVP()">Enviar RSVP</button>
+</div>
+
+<p id="success">¡Gracias! Tu asistencia fue registrada.</p>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxNBPt9HgMf9wgG6VIjvltKiGtpiK5P6ELBUFwyNdHoeQtqhhmdBk2sdDR9bmap2PI1OA/exec"; // tu webapp + ?secret
+
+function validateCode() {
+  const code = document.getElementById('code').value.trim();
+  const btn = document.getElementById('btnValidate');
+  const error = document.getElementById('error');
+
+  if (!code) {
+    error.innerText = "Por favor ingresa tu código.";
+    return;
+  }
+
+  error.innerText = "";
+  btn.disabled = true;
+  btn.innerText = "Validando...";
+
+  fetch(API_URL + "&action=validateCode&code=" + code)
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerText = "Validar Código";
+
+      if (!data.found) {
+        error.innerText = "Código inválido.";
+        return;
+      }
+
+      if (data.alreadyRSVP) {
+        error.innerText = "Este código ya registró su asistencia.";
+        return;
+      }
+
+      const select = document.getElementById('invitados');
+      select.innerHTML = "";
+
+      for (let i = 0; i <= data.capacity; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.innerText = i;
+        select.appendChild(option);
+      }
+
+      document.getElementById('step2').style.display = "block";
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.innerText = "Validar Código";
+      error.innerText = "Error de conexión. Intenta de nuevo.";
+    });
+}
+
+function submitRSVP() {
+  const code = document.getElementById('code').value.trim();
+  const invitados = document.getElementById('invitados').value;
+  const btn = document.getElementById('btnSubmit');
+
+  btn.disabled = true;
+  btn.innerText = "Enviando...";
+
+  fetch(API_URL + "&action=submitRSVP&code=" + code + "&invitados=" + invitados)
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerText = "Enviar RSVP";
+
+      if (!data.ok) {
+        alert(data.error || "Error al registrar RSVP");
+        return;
+      }
+
+      document.getElementById('success').style.display = "block";
+      document.getElementById('step1').style.display = "none";
+      document.getElementById('step2').style.display = "none";
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.innerText = "Enviar RSVP";
+      alert("Error de conexión. Intenta de nuevo.");
+    });
+}
+</script>
+
+</body>
+</html>
