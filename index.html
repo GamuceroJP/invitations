@@ -1,297 +1,216 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>RSVP</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root{
-      --green-bg:#8AAFA0;
-      --gold:#D8C58C;
-      --gold-dark:#C1AE76;
-      --white:#FFFFFF;
-      --muted:#f4f4f4;
-      --accent-text:#26322f;
+<meta charset="UTF-8">
+<title>RSVP</title>
+
+<style>
+    body {
+        font-family: "Cormorant Garamond", serif;
+        background-color: #8BB7A2;  /* verde elegante */
+        color: #2e3d35;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        line-height: 1.5;
     }
-    body{
-      font-family: "Georgia", serif;
-      background: var(--green-bg);
-      color: var(--white);
-      margin:0;
-      padding:24px;
-      display:flex;
-      justify-content:center;
+
+    h2 {
+        text-align: center;
+        font-size: 28px;
+        letter-spacing: 2px;
+        color: #ffffff;
+        margin-bottom: 10px;
     }
-    .container{
-      width:100%;
-      max-width:680px;
+
+    .card {
+        background: #ffffffdd;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-top: 20px;
     }
-    .card{
-      background: rgba(255,255,255,0.12);
-      padding:22px;
-      border-radius:16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+
+    label {
+        font-weight: bold;
+        margin-top: 10px;
     }
-    h1{
-      margin:0 0 10px 0;
-      font-size:26px;
-      font-weight:400;
-      color:var(--white);
-      text-align:center;
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        margin-bottom: 14px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
     }
-    p.lead{
-      margin:8px 0 18px 0;
-      color: rgba(255,255,255,0.95);
-      text-align:center;
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(180deg, #f2e4b8, #d2b670);
+        border: none;
+        font-size: 18px;
+        border-radius: 50px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition: transform 0.2s ease;
     }
-    label { display:block; text-align:left; margin-top:12px; color:var(--white); }
-    input[type="text"], input[type="email"], select, textarea {
-      width:100%;
-      padding:10px 12px;
-      margin-top:8px;
-      border-radius:10px;
-      border:none;
-      font-size:15px;
-      box-sizing:border-box;
-      font-family: Georgia, serif;
-      background: var(--white);
-      color: var(--accent-text);
+
+    button:hover {
+        transform: scale(1.02);
     }
-    textarea { min-height:80px; resize:vertical; }
-    .btn {
-      margin-top:16px;
-      width:100%;
-      padding:12px;
-      border-radius:30px;
-      border:none;
-      background: linear-gradient(180deg,var(--gold),var(--gold-dark));
-      color: #2b2b2b;
-      font-weight:700;
-      font-size:16px;
-      cursor:pointer;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.14);
+
+    #message, #error {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 18px;
     }
-    .btn[disabled]{ opacity:0.6; cursor:default; }
-    .muted-small{ color: rgba(255,255,255,0.85); font-size:14px; }
-    #error{ color: #ffdddd; margin-top:8px; }
-    #success{ display:none; color: var(--gold); text-align:center; font-weight:700; margin-top:12px; font-size:18px; }
-    .inline { display:flex; gap:8px; align-items:center; }
-    .names-container input { margin-top:10px; }
-  </style>
+
+    #error {
+        color: #a50000;
+    }
+
+    #success {
+        color: #0c5c26;
+        font-size: 22px;
+        text-align: center;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+
+</style>
+
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>Confirmación de Asistencia</h1>
-      <p class="lead">Ingresa tu código para comenzar</p>
 
-      <div id="step1">
-        <label for="code">Código</label>
-        <input id="code" type="text" placeholder="Ingresa tu código">
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <button id="btnValidate" class="btn" onclick="validateCode()">Validar Código</button>
-        </div>
-        <div id="error"></div>
-      </div>
+<h2>RSVP</h2>
 
-      <div id="step2" style="display:none;margin-top:14px;">
-        <p id="welcome" style="font-size:18px;margin:0 0 6px 0;"></p>
-        <p id="capacityText" class="muted-small" style="margin:0 0 12px 0;"></p>
+<div class="card">
 
-        <label for="confirmCount">Favor de confirmar la cantidad de asistentes</label>
-        <select id="confirmCount" onchange="onCountChange()">
-          <!-- opciones generadas dinámicamente -->
-        </select>
-
-        <div id="namesSection" class="names-container"></div>
-
-        <label for="ceremony">¿Asistirás a la ceremonia?</label>
-        <select id="ceremony">
-          <option value="Sí">Sí</option>
-          <option value="No">No</option>
-        </select>
-
-        <label for="restr">¿Algún invitado tiene restricciones alimenticias?</label>
-        <textarea id="restr" placeholder="Indica si aplica"></textarea>
-
-        <label for="email">Correo electrónico</label>
-        <input id="email" type="email" placeholder="tu@correo.com">
-
-        <button id="btnSubmit" class="btn" onclick="submitRSVP()">Enviar RSVP</button>
-      </div>
-
-      <p id="success">¡Gracias! Tu respuesta ha sido registrada.</p>
+    <!-- STEP 1: Validar Código -->
+    <div id="step1">
+        <label>Ingresa tu código</label>
+        <input id="code" type="text" placeholder="Ej: APXV01">
+        <button onclick="validateCode()">Validar Código</button>
+        <p id="error"></p>
     </div>
-  </div>
+
+    <!-- STEP 2: Mostrar contenido del RSVP -->
+    <div id="step2" style="display:none;">
+        <p id="welcome"></p>
+        <p id="allocated"></p>
+
+        <label>Favor de confirmar la cantidad de asistentes:</label>
+        <select id="count" onchange="generateNameFields()"></select>
+
+        <div id="names"></div>
+
+        <label>¿Asistirás a la ceremonia?</label>
+        <select id="ceremony">
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+        </select>
+
+        <label>¿Algún invitado tiene restricciones alimenticias?</label>
+        <textarea id="restrictions" rows="3" placeholder="Escribe aquí..."></textarea>
+
+        <label>Correo electrónico</label>
+        <input id="email" type="email" placeholder="correo@example.com">
+
+        <button onclick="submitRSVP()">Enviar RSVP</button>
+
+        <p id="success"></p>
+    </div>
+
+</div>
 
 <script>
-/* CONFIG - PON AQUI TU URL Y SECRET */
-const API_BASE = "https://script.google.com/macros/s/AKfycbxNBPt9HgMf9wgG6VIjvltKiGtpiK5P6ELBUFwyNdHoeQtqhhmdBk2sdDR9bmap2PI1OA/exec"; // Ej: https://script.google.com/macros/s/XXXXX/exec
-const SECRET = "key_AnaPau";
+const API_URL = "https://script.google.com/macros/s/AKfycbxNBPt9HgMf9wgG6VIjvltKiGtpiK5P6ELBUFwyNdHoeQtqhhmdBk2sdDR9bmap2PI1OA/exec";  // ← cambia esto
 
-/* Estado global */
 let globalCode = "";
-let globalNombre = "";
-let globalCapacity = 0;
+let globalTotal = 0;
 
-/* UTIL: fetch JSON safe */
-function fetchJson(url) {
-  return fetch(url).then(res => {
-    if (!res.ok) throw new Error("Network error");
-    return res.json();
-  });
-}
-
-/* VALIDAR CÓDIGO */
+/* ------------------------------
+   VALIDAR CÓDIGO
+--------------------------------*/
 function validateCode() {
-  const code = document.getElementById('code').value.trim();
-  const errorEl = document.getElementById('error');
-  errorEl.innerText = "";
+    const code = document.getElementById("code").value.trim();
+    if (!code) return;
 
-  if (!code) {
-    errorEl.innerText = "Por favor ingresa tu código.";
-    return;
-  }
+    fetch(API_URL + "?action=validateCode&code=" + code)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.found) {
+                document.getElementById("error").innerText = "Código inválido";
+                return;
+            }
 
-  const btn = document.getElementById('btnValidate');
-  btn.disabled = true;
-  btn.innerText = "Validando...";
+            globalCode = code;
+            globalTotal = data.total;
 
-  const params = new URLSearchParams({
-    action: "validateCode",
-    secret: SECRET,
-    code: code
-  });
+            document.getElementById("error").innerText = "";
+            document.getElementById("step1").style.display = "none";
 
-  fetchJson(`${API_BASE}?${params.toString()}`)
-    .then(data => {
-      btn.disabled = false;
-      btn.innerText = "Validar Código";
+            document.getElementById("welcome").innerHTML =
+                `Gracias por acompañarnos, <b>${data.name}</b>`;
 
-      if (data.error) {
-        errorEl.innerText = data.error;
-        return;
-      }
-      if (!data.found) {
-        errorEl.innerText = "Código inválido.";
-        return;
-      }
+            document.getElementById("allocated").innerHTML =
+                `Con cariño hemos apartado <b>${data.total}</b> lugares para ustedes.`;
 
-      // ok: mostrar paso 2
-      globalCode = code;
-      globalNombre = data.nombre || "";
-      globalCapacity = Number(data.capacity || 0);
+            let sel = document.getElementById("count");
+            sel.innerHTML = "";
+            for (let i = 0; i <= data.total; i++) {
+                sel.innerHTML += `<option value="${i}">${i}</option>`;
+            }
 
-      document.getElementById('welcome').innerText = `Gracias por acompañarnos, ${globalNombre}`;
-      document.getElementById('capacityText').innerText = `Con cariño hemos apartado ${globalCapacity} lugares para ustedes.`;
-
-      // Poblar dropdown 0..capacity
-      const sel = document.getElementById('confirmCount');
-      sel.innerHTML = "";
-      for (let i = 0; i <= globalCapacity; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = i;
-        sel.appendChild(opt);
-      }
-      // Default 0
-      sel.value = 0;
-      onCountChange();
-
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Validar Código";
-      document.getElementById('error').innerText = "Error de conexión. Intenta de nuevo.";
-      console.error(err);
-    });
+            generateNameFields();
+            document.getElementById("step2").style.display = "block";
+        });
 }
 
-/* Cuando cambia el dropdown: generar inputs de nombres según el valor */
-function onCountChange() {
-  const count = Number(document.getElementById('confirmCount').value || 0);
-  const container = document.getElementById('namesSection');
-  container.innerHTML = ""; // limpiar
+/* ------------------------------
+   GENERAR CAMPOS DE NOMBRES
+--------------------------------*/
+function generateNameFields() {
+    const count = Number(document.getElementById("count").value);
+    const container = document.getElementById("names");
+    container.innerHTML = "";
 
-  if (count === 0) {
-    container.innerHTML = `<p class="muted-small">Has seleccionado 0 asistentes.</p>`;
-    return;
-  }
-
-  const title = document.createElement('p');
-  title.style.marginTop = '12px';
-  title.style.marginBottom = '6px';
-  title.innerText = 'Nombres de los asistentes';
-  container.appendChild(title);
-
-  for (let i = 1; i <= count; i++) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = `name_${i}`;
-    input.placeholder = `Nombre ${i}`;
-    container.appendChild(input);
-  }
+    for (let i = 1; i <= count; i++) {
+        container.innerHTML += `
+            <label>Nombre ${i}</label>
+            <input type="text" id="name${i}" placeholder="Nombre del asistente ${i}">
+        `;
+    }
 }
 
-/* SUBMIT */
+/* ------------------------------
+   ENVIAR RSVP
+--------------------------------*/
 function submitRSVP() {
-  const btn = document.getElementById('btnSubmit');
-  btn.disabled = true;
-  btn.innerText = "Enviando...";
+    const count = Number(document.getElementById("count").value);
+    const ceremony = document.getElementById("ceremony").value;
+    const restrictions = document.getElementById("restrictions").value;
+    const email = document.getElementById("email").value;
 
-  const count = Number(document.getElementById('confirmCount').value || 0);
-  const asistentes = [];
-  for (let i = 1; i <= count; i++) {
-    const val = (document.getElementById(`name_${i}`) || {value:""}).value.trim();
-    if (val) asistentes.push(val);
-    else asistentes.push(""); // mantener posición, opcional
-  }
+    // Construir parámetros
+    let url = `${API_URL}?action=submitRSVP&code=${globalCode}&count=${count}&ceremony=${encodeURIComponent(ceremony)}&restrictions=${encodeURIComponent(restrictions)}&email=${encodeURIComponent(email)}`;
 
-  const ceremonia = document.getElementById('ceremony').value;
-  const restricciones = document.getElementById('restr').value.trim();
-  const correo = document.getElementById('email').value.trim();
+    for (let i = 1; i <= count; i++) {
+        const name = document.getElementById("name" + i).value;
+        url += `&name${i}=${encodeURIComponent(name)}`;
+    }
 
-  // Validaciones mínimas
-  if (!correo) {
-    alert("Por favor proporciona un correo de contacto.");
-    btn.disabled = false;
-    btn.innerText = "Enviar RSVP";
-    return;
-  }
-
-  // Construir params
-  const params = new URLSearchParams();
-  params.append('action', 'submitRSVP');
-  params.append('secret', SECRET);
-  params.append('code', globalCode);
-  params.append('selectedCount', String(count));
-  params.append('asistentes', JSON.stringify(asistentes));
-  params.append('ceremonia', ceremonia);
-  params.append('restricciones', restricciones);
-  params.append('correo', correo);
-
-  fetchJson(`${API_BASE}?${params.toString()}`)
-    .then(data => {
-      btn.disabled = false;
-      btn.innerText = "Enviar RSVP";
-
-      if (data.ok) {
-        document.getElementById('success').style.display = 'block';
-        document.getElementById('step2').style.display = 'none';
-        document.getElementById('step1').style.display = 'none';
-      } else {
-        alert(data.error || "Error al guardar la respuesta.");
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Enviar RSVP";
-      alert("Error de conexión. Intenta de nuevo.");
-      console.error(err);
-    });
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("success").innerText =
+                "¡Gracias! Tu asistencia ha sido registrada correctamente.";
+        });
 }
 </script>
+
 </body>
 </html>
