@@ -1,196 +1,160 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>RSVP</title>
+  <title>Formulario RSVP XV - Ana Pau</title>
   <style>
-    /* === Paleta === */
-    :root {
-      --green-bg: #8AAFA0;
-      --green-dark: #6E9186;
-      --gold: #D8C58C;
-      --gold-dark: #C1AE76;
-      --white: #FFFFFF;
-    }
-
     body {
-      font-family: "Georgia", "Times New Roman", serif;
-      max-width: 420px;
+      font-family: 'Georgia', serif;
+      background-color: #85A59D;
+      color: white;
+      max-width: 600px;
       margin: auto;
-      padding: 25px;
-      background: var(--green-bg);
-      color: var(--white);
-      letter-spacing: 0.5px;
+      padding: 30px;
       text-align: center;
     }
 
     h2 {
       font-size: 28px;
-      font-weight: 300;
       margin-bottom: 20px;
     }
 
-    label {
-      font-size: 18px;
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 25px;
+      border-radius: 20px;
       margin-top: 20px;
-      display: block;
+      backdrop-filter: blur(4px);
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
-      border-radius: 30px;
+      margin: 10px 0;
+      border-radius: 10px;
       border: none;
-      background: var(--white);
-      color: var(--green-dark);
       font-size: 16px;
-      text-align: center;
-      font-family: "Georgia", serif;
     }
 
-    button {
-      width: 100%;
+    .btn {
+      background: linear-gradient(180deg, #F4E3AB 0%, #C6A76F 100%);
+      color: #333;
       padding: 14px;
-      margin-top: 22px;
-      border-radius: 40px;
       border: none;
-      background: linear-gradient(180deg, var(--gold), var(--gold-dark));
-      color: var(--green-dark);
-      font-size: 16px;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      border-radius: 30px;
+      font-size: 18px;
+      width: 100%;
       cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      filter: brightness(1.05);
-    }
-
-    button:disabled {
-      background: #B7A878;
-      color: #6B6B6B;
-      cursor: default;
-    }
-
-    #step2, #success {
-      display: none;
-    }
-
-    #success {
-      margin-top: 30px;
-      font-size: 20px;
-      color: var(--gold);
-      font-weight: bold;
-    }
-
-    #error {
-      color: #FFD5D5;
       margin-top: 10px;
-      font-size: 15px;
-      font-style: italic;
     }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    #step2 { display: none; }
+    #success { display: none; font-weight: bold; font-size: 22px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
 <h2>Confirmación de Asistencia</h2>
 
-<div id="step1">
-  <label>Código</label>
-  <input id="code" type="text" placeholder="Ingresa tu código">
-  <button id="btnValidate" onclick="validateCode()">Validar Código</button>
-  <p id="error"></p>
+<div class="card" id="step1">
+  <p>Ingresa tu código de invitación:</p>
+  <input id="code" type="text" placeholder="Código">
+  <button class="btn" onclick="validateCode()">Validar Código</button>
+  <p id="error" style="color:#ffdddd"></p>
 </div>
 
-<div id="step2">
-  <label>Invitados que asistirán</label>
-  <select id="invitados"></select>
-  <button id="btnSubmit" onclick="submitRSVP()">Enviar RSVP</button>
+<div class="card" id="step2">
+  <h3 id="welcome"></h3>
+  <p id="capacityText"></p>
+
+  <div id="asistentesContainer"></div>
+
+  <label>¿Asistirás a la ceremonia?</label>
+  <select id="ceremonia">
+    <option value="Sí">Sí</option>
+    <option value="No">No</option>
+  </select>
+
+  <label>¿Algún invitado tiene restricciones alimenticias?</label>
+  <textarea id="restricciones" placeholder="Especifica aquí"></textarea>
+
+  <label>Correo electrónico de contacto</label>
+  <input id="correo" type="email" placeholder="tu@correo.com">
+
+  <button class="btn" onclick="submitRSVP()">Enviar RSVP</button>
 </div>
 
-<p id="success">¡Gracias! Tu asistencia fue registrada.</p>
+<p id="success">¡Gracias! Tu respuesta ha sido registrada.</p>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxNBPt9HgMf9wgG6VIjvltKiGtpiK5P6ELBUFwyNdHoeQtqhhmdBk2sdDR9bmap2PI1OA/exec"; // tu webapp + ?secret
+const API_URL = "https://script.google.com/macros/s/AKfycbxNBPt9HgMf9wgG6VIjvltKiGtpiK5P6ELBUFwyNdHoeQtqhhmdBk2sdDR9bmap2PI1OA/exec";  // <-- reemplaza esto
+const SECRET = "key_AnaPau";
 
+let globalCode = "";
+let globalCapacity = 0;
+let globalNombre = "";
+
+/******** VALIDAR CÓDIGO *********/
 function validateCode() {
   const code = document.getElementById('code').value.trim();
-  const btn = document.getElementById('btnValidate');
-  const error = document.getElementById('error');
+  globalCode = code;
 
-  if (!code) {
-    error.innerText = "Por favor ingresa tu código.";
-    return;
-  }
-
-  error.innerText = "";
-  btn.disabled = true;
-  btn.innerText = "Validando...";
-
-  fetch(API_URL + "&action=validateCode&code=" + code)
+  fetch(API_URL + `?action=validateCode&secret=${SECRET}&code=${code}`)
     .then(res => res.json())
     .then(data => {
-      btn.disabled = false;
-      btn.innerText = "Validar Código";
-
       if (!data.found) {
-        error.innerText = "Código inválido.";
+        document.getElementById('error').innerText = "Código inválido";
         return;
       }
 
-      if (data.alreadyRSVP) {
-        error.innerText = "Este código ya registró su asistencia.";
-        return;
-      }
+      globalCapacity = data.capacity;
+      globalNombre = data.nombre;
 
-      const select = document.getElementById('invitados');
-      select.innerHTML = "";
-
-      for (let i = 0; i <= data.capacity; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.innerText = i;
-        select.appendChild(option);
-      }
-
+      document.getElementById('error').innerText = "";
       document.getElementById('step2').style.display = "block";
-    })
-    .catch(() => {
-      btn.disabled = false;
-      btn.innerText = "Validar Código";
-      error.innerText = "Error de conexión. Intenta de nuevo.";
+      document.getElementById('welcome').innerText =
+        `Gracias por acompañarnos, ${globalNombre}`;
+      document.getElementById('capacityText').innerText =
+        `Con cariño hemos apartado ${globalCapacity} lugares para ustedes`;
+
+      // GENERAR CAMPOS DE NOMBRES
+      const container = document.getElementById("asistentesContainer");
+      container.innerHTML = "<h4>Nombre de los asistentes:</h4>";
+
+      for (let i = 1; i <= globalCapacity; i++) {
+        container.innerHTML += `
+          <input type="text" id="asistente${i}" placeholder="Nombre ${i}">
+        `;
+      }
     });
 }
 
+/******** ENVIAR RSVP *********/
 function submitRSVP() {
-  const code = document.getElementById('code').value.trim();
-  const invitados = document.getElementById('invitados').value;
-  const btn = document.getElementById('btnSubmit');
+  const asistentes = [];
+  for (let i = 1; i <= globalCapacity; i++) {
+    const val = document.getElementById(`asistente${i}`).value.trim();
+    if (val) asistentes.push(val);
+  }
 
-  btn.disabled = true;
-  btn.innerText = "Enviando...";
+  const ceremonia = document.getElementById('ceremonia').value;
+  const restricciones = document.getElementById('restricciones').value;
+  const correo = document.getElementById('correo').value;
 
-  fetch(API_URL + "&action=submitRSVP&code=" + code + "&invitados=" + invitados)
-    .then(res => res.json())
-    .then(data => {
-      btn.disabled = false;
-      btn.innerText = "Enviar RSVP";
-
-      if (!data.ok) {
-        alert(data.error || "Error al registrar RSVP");
-        return;
-      }
-
-      document.getElementById('success').style.display = "block";
-      document.getElementById('step1').style.display = "none";
-      document.getElementById('step2').style.display = "none";
-    })
-    .catch(() => {
-      btn.disabled = false;
-      btn.innerText = "Enviar RSVP";
-      alert("Error de conexión. Intenta de nuevo.");
-    });
+  fetch(API_URL + `?action=submitRSVP&secret=${SECRET}` +
+    `&code=${globalCode}` +
+    `&ceremonia=${encodeURIComponent(ceremonia)}` +
+    `&restricciones=${encodeURIComponent(restricciones)}` +
+    `&correo=${encodeURIComponent(correo)}` +
+    `&asistentes=${encodeURIComponent(JSON.stringify(asistentes))}`
+  )
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("success").style.display = "block";
+  });
 }
 </script>
 
